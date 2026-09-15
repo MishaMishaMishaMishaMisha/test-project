@@ -1,0 +1,49 @@
+name: test_project-dev
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: container-backend
+    env_file: .env
+    ports:
+      - "${APP_PORT}:8000"
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    command: uv run uvicorn src.main:app --host ${APP_HOST} --port ${APP_PORT} --reload
+
+  db:
+    image: postgres:17-alpine
+    container_name: container-postgres
+    env_file: .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db_data_:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+  cache:
+    image: redis:7-alpine
+    container_name: container-redis
+    env_file: .env
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - cache_data_:/data 
+
+volumes:
+  db_data_:
+  cache_data_:
+
+    

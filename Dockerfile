@@ -36,5 +36,6 @@ COPY --chown=appuser:appuser src/ ./src/
 # finish configuring venv and project
 RUN uv sync --frozen
 
+# run server
 CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
